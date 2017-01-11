@@ -1,6 +1,7 @@
 # A dictionary of movie critics and their ratings of a small
 # set of movies
 from math import sqrt
+import pydelicious
 critics ={'Lisa Rose': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.5, 'Just My Luck': 3.0, 'Superman Returns': 3.5, 'You, Me and Dupree': 2.5, 'The Night Listener': 3.0},
           'Gene Seymour': {'Lady in the Water': 3.0, 'Snakes on a Plane': 3.5, 'Just My Luck': 1.5, 'Superman Returns': 5.0, 'The Night Listener': 3.0, 'You, Me and Dupree': 3.5},
           'Michael Phillips': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.0, 'Superman Returns': 3.5, 'The Night Listener': 4.0},
@@ -101,10 +102,12 @@ def transformPrefs(prefs):
     return result
 
 if __name__ == "__main__":
-    print(sim_distance(critics, 'Lisa Rose', 'Gene Seymour'))
-    print(sim_pearson(critics, 'Lisa Rose', 'Gene Seymour'))
-    print(topMatches(critics, 'Toby', n=3))
-    print(getRecommendations(critics, 'Toby'))
-    print(getRecommendations(critics, "Toby", similarity=sim_distance))
+    similarity1 = sim_distance(critics, 'Lisa Rose', 'Gene Seymour')
+    similarity2 = sim_pearson(critics, 'Lisa Rose', 'Gene Seymour')
+    matchToby = topMatches(critics, 'Toby', n=3)
+    recommendation1 = getRecommendations(critics, 'Toby')
+    recommendation2 = getRecommendations(critics, "Toby", similarity=sim_distance)
     movies = transformPrefs(critics)
-    print(movies)
+    matchSR = topMatches(movies, "Superman Returns")
+    recommendation3 = getRecommendations(movies, "Just My Luck")
+    print recommendation3
