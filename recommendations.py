@@ -51,6 +51,12 @@ def sim_pearson(pref, person1, person2):
 
     return r
 
+# Taminoto correlation coefficient: measurement of binary situation
+def sim_taminoto(prefs, person1, person2):
+    union = list(set(prefs[person1] | prefs[person2]))
+    intersection = list(set(prefs[person1] & prefs[person2]))
+    return 1.0 * len(intersection) / len(union)
+
 # Returns the best matches for person from the prefs dictionary.
 # Number of results and similarity function are optional params.
 
@@ -148,17 +154,56 @@ def getRecommentedItems(prefs, itemMatch, user):
     ranking.sort(reverse=True)
     return ranking
 
+def calculateSimilarUsers(userPrefs, n = 10):
+    # Create a dictionary of items showing which other items they are most similar to.
+    result ={}
+
+    c = 0
+
+    for item in userPrefs:
+        # Status updates for large datasets
+        c += 1
+        if c%100 == 0: print "%d / %d" % (c, len(userPrefs))
+        # Find the most similar items to this one
+        scores = topMatches(userPrefs, item, similarity = sim_distance)
+        result[item] = scores
+    return result
+
+def getRecommentedUsers(prefs, userMatch, user):
+    userSim = userMatch[user]
+    scores = {}
+    totalSim = {}
+
+    for similarity,aUser in userSim:
+        for movieName, rating in prefs[aUser].items():
+            if movieName in userSim: continue
+            totalSim.setdefault(movieName, 0)
+            totalSim[movieName] += similarity * rating
+            scores.setdefault(movieName, 0)
+            scores[movieName] += similarity
+
+    ranking = [(similarity / scores[movieName],movieName) for movieName, similarity in totalSim.items()]
+    ranking.sort(reverse=True)
+
+    return ranking
+
 def loadMoviesData(fileName1, fileName2):
+    # loading of the data csv files
     ratings = open(fileName1)
     nameOfMivies = open(fileName2)
-    rators = {}
-    names = {}
     ID = csv.reader(nameOfMivies)
     movies = csv.reader(ratings)
+
+    # create new dictionary
+    rators = {}
+    names = {}
+
+    # assign ID to names
     for line in ID:
         id,name = line[0:2]
         names[id] = name
 
+    # create to data set for item recommendation
     for line in movies:
         userId, movieId, rating, timestamp = line
         rators.setdefault(userId,{})
@@ -179,4 +224,6 @@ if __name__ == "__main__":
     similarityItemToby = getRecommentedItems(critics, itemSim, "Toby")
     newData = loadMoviesData("ratings.csv", "movies.csv")
     itemSim2 = calculateSimilarItems(newData)
-    recommendation4 = getRecommentedItems(newData, itemSim2, "87")[0:30]
+    recommendation4 = getRecommentedItems(newData, itemSim2, "87")[0:5]
+    userSim = calculateSimilarUsers(newData)
+    recommendation5 = getRecommentedUsers(newData, userSim, "87")[0:5]
