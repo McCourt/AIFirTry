@@ -1,7 +1,7 @@
 # A dictionary of movie critics and their ratings of a small
 # set of movies
 from math import sqrt
-import pydelicious
+import csv
 critics ={'Lisa Rose': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.5, 'Just My Luck': 3.0, 'Superman Returns': 3.5, 'You, Me and Dupree': 2.5, 'The Night Listener': 3.0},
           'Gene Seymour': {'Lady in the Water': 3.0, 'Snakes on a Plane': 3.5, 'Just My Luck': 1.5, 'Superman Returns': 5.0, 'The Night Listener': 3.0, 'You, Me and Dupree': 3.5},
           'Michael Phillips': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.0, 'Superman Returns': 3.5, 'The Night Listener': 4.0},
@@ -101,6 +101,71 @@ def transformPrefs(prefs):
             result[item][person] = prefs[person][item]
     return result
 
+def calculateSimilarItems(prefs, n = 10):
+    # Create a dictionary of items showing which other items they are most similar to.
+    result ={}
+
+    # Invert the preference matrix to be item-centric
+    itemPrefs = transformPrefs(prefs)
+
+    c = 0
+
+    for item in itemPrefs:
+        # Status updates for large datasets
+        c += 1
+        if c%100 == 0: print "%d / %d" % (c, len(itemPrefs))
+        # Find the most similar items to this one
+        scores = topMatches(itemPrefs, item, n = n, similarity = sim_distance)
+        result[item] = scores
+    return result
+
+def getRecommentedItems(prefs, itemMatch, user):
+    userRating = prefs[user]
+    score = {}
+    totalSim = {}
+
+    # Loop over items rated by this user
+    for (item,rating) in userRating.items():
+
+        # Loop over items similar to this one
+        for (similarity,item2) in itemMatch[item]:
+
+            # Ignore if this user has already rated this item
+            if item2 in userRating: continue
+
+            # Weighted sum of rating times similarity
+            score.setdefault(item2, 0)
+            score[item2] += similarity * rating
+
+            # Sum of all the similarities
+            totalSim.setdefault(item2, 0)
+            totalSim[item2] += similarity
+
+    # Divide each total score by total weighting to get an average
+    ranking = [(rating / totalSim[item], item) for item,rating in score.items()]
+
+    # Return the rankings from highest to lowest
+    ranking.sort(reverse=True)
+    return ranking
+
+def loadMoviesData(fileName1, fileName2):
+    ratings = open(fileName1)
+    nameOfMivies = open(fileName2)
+    rators = {}
+    names = {}
+    ID = csv.reader(nameOfMivies)
+    movies = csv.reader(ratings)
+    for line in ID:
+        id,name = line[0:2]
+        names[id] = name
+
+    for line in movies:
+        userId, movieId, rating, timestamp = line
+        rators.setdefault(userId,{})
+        rators[userId][names[movieId]] = float(rating)
+
+    return rators
+
 if __name__ == "__main__":
     similarity1 = sim_distance(critics, 'Lisa Rose', 'Gene Seymour')
     similarity2 = sim_pearson(critics, 'Lisa Rose', 'Gene Seymour')
@@ -110,4 +175,8 @@ if __name__ == "__main__":
     movies = transformPrefs(critics)
     matchSR = topMatches(movies, "Superman Returns")
     recommendation3 = getRecommendations(movies, "Just My Luck")
-    print recommendation3
+    itemSim = calculateSimilarItems(critics)
+    similarityItemToby = getRecommentedItems(critics, itemSim, "Toby")
+    newData = loadMoviesData("ratings.csv", "movies.csv")
+    itemSim2 = calculateSimilarItems(newData)
+    recommendation4 = getRecommentedItems(newData, itemSim2, "87")[0:30]
