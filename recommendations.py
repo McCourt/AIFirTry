@@ -24,8 +24,6 @@ def sim_distance(pref, person1, person2):
 
     return 1 / (1+sum_of_squares)
 
-print(sim_distance(critics,'Lisa Rose','Gene Seymour'))
-
 # Pearson correlation coefficient: measurement of linear fitting
 def sim_pearson(pref, person1, person2):
     si = list()
@@ -52,8 +50,6 @@ def sim_pearson(pref, person1, person2):
 
     return r
 
-print(sim_pearson(critics,'Lisa Rose','Gene Seymour'))
-
 # Returns the best matches for person from the prefs dictionary.
 # Number of results and similarity function are optional params.
 
@@ -63,8 +59,6 @@ def topMatches(pref, person, n = 5, similarity = sim_pearson):
     score.sort()
     score.reverse()
     return score[0:n]
-
-print(topMatches(critics,'Toby', n = 3))
 
 # Gets recommendations for a person by using a weighted average
 #  of every other user's rankings
@@ -89,11 +83,28 @@ def getRecommendations(prefs, person, similarity = sim_pearson):
 
     # Create the normalized list
     rankings =[(total / simSums[item], item) for item, total in totals.items()]
+
     # Return the sorted list
     rankings.sort()
     rankings.reverse()
-
     return rankings
 
-print(getRecommendations(critics,'Toby'))
-print(getRecommendations(critics, "Toby", similarity=sim_distance))
+# transformation of the critics to another form
+
+def transformPrefs(prefs):
+    result ={}
+    for person in prefs:
+        for item in prefs[person]:
+            result.setdefault(item,{})
+            # Flip item and person
+            result[item][person] = prefs[person][item]
+    return result
+
+if __name__ == "__main__":
+    print(sim_distance(critics, 'Lisa Rose', 'Gene Seymour'))
+    print(sim_pearson(critics, 'Lisa Rose', 'Gene Seymour'))
+    print(topMatches(critics, 'Toby', n=3))
+    print(getRecommendations(critics, 'Toby'))
+    print(getRecommendations(critics, "Toby", similarity=sim_distance))
+    movies = transformPrefs(critics)
+    print(movies)
