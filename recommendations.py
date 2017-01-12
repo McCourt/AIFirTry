@@ -119,7 +119,7 @@ def calculateSimilarItems(prefs, n = 10):
     for item in itemPrefs:
         # Status updates for large datasets
         c += 1
-        if c%100 == 0: print "%d / %d" % (c, len(itemPrefs))
+        if c%100 == 0: print("%d / %d" % (c, len(itemPrefs)))
         # Find the most similar items to this one
         scores = topMatches(itemPrefs, item, n = n, similarity = sim_distance)
         result[item] = scores
@@ -163,7 +163,7 @@ def calculateSimilarUsers(userPrefs, n = 10):
     for item in userPrefs:
         # Status updates for large datasets
         c += 1
-        if c%100 == 0: print "%d / %d" % (c, len(userPrefs))
+        if c%100 == 0: print("%d / %d" % (c, len(userPrefs)))
         # Find the most similar items to this one
         scores = topMatches(userPrefs, item, similarity = sim_distance)
         result[item] = scores
